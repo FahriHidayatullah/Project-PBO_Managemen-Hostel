@@ -47,13 +47,13 @@ public class DashboardView extends JPanel {
         statsPanel.setBackground(new Color(245, 235, 220));
         statsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 25, 0));
 
-        lblTotalKamar = createStatCard(statsPanel, "Total Kamar", "Loading...", "🏨");
-        lblKamarTersedia = createStatCard(statsPanel, "Kamar Tersedia", "Loading...", "✅");
-        lblTotalTamu = createStatCard(statsPanel, "Total Tamu", "Loading...", "👥");
-        lblPendapatan = createStatCard(statsPanel, "Pendapatan Bulan Ini", "Loading...", "💰");
+        lblTotalKamar = createStatCard(statsPanel, "Total Kamar", "Loading...");
+        lblKamarTersedia = createStatCard(statsPanel, "Kamar Tersedia", "Loading...");
+        lblTotalTamu = createStatCard(statsPanel, "Total Tamu", "Loading...");
+        lblPendapatan = createStatCard(statsPanel, "Pendapatan Bulan Ini", "Loading...");
 
         // Recent Activities Table
-        String[] cols = {"Jam", "Aktivitas", "Tamu", "Status"};
+        String[] cols = { "Jam", "Aktivitas", "Tamu", "Status" };
         recentModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -73,8 +73,7 @@ public class DashboardView extends JPanel {
         JScrollPane scroll = new JScrollPane(recentTable);
         scroll.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(180, 150, 120), 1),
-                BorderFactory.createEmptyBorder(0, 0, 0, 0)
-        ));
+                BorderFactory.createEmptyBorder(0, 0, 0, 0)));
         scroll.setBackground(Color.WHITE);
 
         JPanel tablePanel = new JPanel(new BorderLayout());
@@ -95,22 +94,18 @@ public class DashboardView extends JPanel {
         loadRecentActivitiesAsync();
     }
 
-    private JLabel createStatCard(JPanel parent, String title, String value, String icon) {
+    private JLabel createStatCard(JPanel parent, String title, String value) {
         JPanel card = new JPanel(new BorderLayout(10, 5));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 170, 140), 1),
-                BorderFactory.createEmptyBorder(18, 18, 18, 18)
-        ));
+                BorderFactory.createEmptyBorder(18, 18, 18, 18)));
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(Color.WHITE);
-        JLabel lblIcon = new JLabel(icon);
-        lblIcon.setFont(new Font("Segoe UI", Font.PLAIN, 28));
         JLabel lblTitle = new JLabel(title);
         lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblTitle.setForeground(new Color(100, 70, 45));
-        topPanel.add(lblIcon, BorderLayout.WEST);
         topPanel.add(lblTitle, BorderLayout.EAST);
 
         JLabel lblValue = new JLabel(value);
@@ -142,7 +137,8 @@ public class DashboardView extends JPanel {
                     }
 
                     // Kamar Tersedia
-                    PreparedStatement ps2 = conn.prepareStatement("SELECT COUNT(*) FROM kamar WHERE status = 'Tersedia'");
+                    PreparedStatement ps2 = conn
+                            .prepareStatement("SELECT COUNT(*) FROM kamar WHERE status = 'Tersedia'");
                     ResultSet rs2 = ps2.executeQuery();
                     if (rs2.next()) {
                         kamarTersedia = rs2.getInt(1);
@@ -157,8 +153,7 @@ public class DashboardView extends JPanel {
 
                     // Pendapatan bulan ini
                     PreparedStatement ps4 = conn.prepareStatement(
-                            "SELECT SUM(total_harga) FROM reservasi WHERE MONTH(tanggal_check_out) = MONTH(CURDATE()) AND status = 'Check-Out'"
-                    );
+                            "SELECT SUM(total_harga) FROM reservasi WHERE MONTH(tanggal_check_out) = MONTH(CURDATE()) AND status = 'Check-Out'");
                     ResultSet rs4 = ps4.executeQuery();
                     if (rs4.next()) {
                         pendapatan = rs4.getDouble(1);
@@ -180,25 +175,26 @@ public class DashboardView extends JPanel {
         worker.execute();
     }
 
-    // MULTITHREADING: Load recent activities dengan SwingWorker
     private void loadRecentActivitiesAsync() {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             private java.util.List<Object[]> data = new java.util.ArrayList<>();
 
             @Override
             protected Void doInBackground() throws Exception {
-                try (Connection conn = DatabaseConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(
-                        "SELECT DATE_FORMAT(r.tanggal_booking, '%H:%i') as waktu, "
-                        + "CONCAT('Reservasi Kamar ', k.nomor_kamar) as aktivitas, "
-                        + "t.nama as tamu, r.status as status "
-                        + "FROM reservasi r JOIN tamu t ON r.id_tamu = t.id "
-                        + "JOIN kamar k ON r.id_kamar = k.id ORDER BY r.tanggal_booking DESC LIMIT 10")) {
+                try (Connection conn = DatabaseConnection.getConnection();
+                        Statement stmt = conn.createStatement();
+                        ResultSet rs = stmt.executeQuery(
+                                "SELECT DATE_FORMAT(r.tanggal_booking, '%H:%i') as waktu, "
+                                        + "CONCAT('Reservasi Kamar ', k.nomor_kamar) as aktivitas, "
+                                        + "t.nama as tamu, r.status as status "
+                                        + "FROM reservasi r JOIN tamu t ON r.id_tamu = t.id "
+                                        + "JOIN kamar k ON r.id_kamar = k.id ORDER BY r.tanggal_booking DESC LIMIT 10")) {
                     while (rs.next()) {
-                        data.add(new Object[]{
-                            rs.getString("waktu"),
-                            rs.getString("aktivitas"),
-                            rs.getString("tamu"),
-                            rs.getString("status")
+                        data.add(new Object[] {
+                                rs.getString("waktu"),
+                                rs.getString("aktivitas"),
+                                rs.getString("tamu"),
+                                rs.getString("status")
                         });
                     }
                 }
